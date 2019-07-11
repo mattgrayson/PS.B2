@@ -24,7 +24,7 @@ function Invoke-B2ItemUpload
     ID            : 4_z4a48fe8875c6214145260818_f1073d0771c828c7f_d20160131_m052759_c001_v0001000_t0014
     
     The cmdlet above will upload the file hello.txt to the selected bucket ID and metadata about the
-    uploaded file will be returned if the cmdlet is successfull.
+    uploaded file will be returned if the cmdlet is successful.
 .EXAMPLE
     PS C:\>Invoke-B2ItemUpload -BucketID 4a48fe8875c6214145260818 -Path '.\hello.txt','.\world.txt'
     
@@ -69,6 +69,20 @@ function Invoke-B2ItemUpload
     ID            : 4_z4a48fe8875c6214145260818_f1073d0771c828c7f_d20160131_m052759_c001_v0001000_t0014
     
     The cmdlet above will upload all files returned by the Get-ChildItem cmdlet.
+.EXAMPLE
+    Invoke-B2ItemUpload -BucketID 4a48fe8875c6214145260818 -Path '.\hello.txt' -Prefix 'assets/1234/'
+    
+    Name          : assets/1234/hello.txt
+    FileInfo      : @{author=Administrators}
+    Type          : text/plain
+    Length        : 38
+    BucketID      : 4a48fe8875c6214145260818
+    AccountID     : 30f20426f0b1
+    SHA1          : E1E64A1C6E535763C5B775BAAD2ACF792D97F7DA
+    ID            : 4_z4a48fe8875c6214145260818_f1073d0771c828c7f_d20160131_m052759_c001_v0001000_t0014
+    
+    The cmdlet above will upload the file hello.txt to the selected bucket ID with the name 
+    assets/1234/hello.txt and metadata about the uploaded file will be returned if the cmdlet is successful.
 .INPUTS
     System.String
     
@@ -110,7 +124,13 @@ function Invoke-B2ItemUpload
                    Position=2)]
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
-        [Switch]$Force
+        [Switch]$Force,
+        # Prefix for upload file name.
+        [Parameter(Mandatory=$false,
+                   Position=3)]
+        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
+        [String]$Prefix
     )
     
     Begin
@@ -126,9 +146,9 @@ function Invoke-B2ItemUpload
             {
                 try
                 {
-                    # Required file info is retireved in this block and escapes HTTP data.
+                    # Required file info is retrieved in this block and escapes HTTP data.
                     [String]$b2FileName = (Get-Item -Path $file).Name
-                    $b2FileName = [System.Uri]::EscapeDataString($b2FileName)
+                    $b2FileName = [System.Uri]::EscapeDataString("$Prefix$b2FileName")
                     # System.Web.MimeMapping is imported from the Set-OutputTypes script.
                     [String]$b2FileMime = [System.Web.MimeMapping]::GetMimeMapping($file)
                     # SHA1 is used as per B2 specification.
